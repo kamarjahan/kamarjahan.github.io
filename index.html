@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tip Your Streamer</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Tip @Streamer</h1>
+    <form id="tipForm">
+      <input type="text" id="name" placeholder="Your Name (optional)" />
+      <input type="number" id="amount" placeholder="Amount (₹)" required />
+      <textarea id="message" placeholder="Leave a message..." required></textarea>
+      <input type="text" id="txnId" placeholder="UPI Txn ID" required />
+      <button type="submit">Send Tip</button>
+    </form>
+    <p id="statusMsg"></p>
+  </div>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.3.1/firebase-database-compat.js"></script>
+  <script src="firebaseConfig.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
