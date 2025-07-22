@@ -2,34 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>NetSpeed</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FutrSpeed – Internet Speed Test</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
-    <h1>Network Speed Test</h1>
-
-    <div class="speed-display">
-      <span id="speed">0</span>
-      <span id="unit">Mbps</span>
+    <h1>🚀 FutrSpeed</h1>
+    <div class="card">
+      <p>Download</p>
+      <h2 id="downloadText">0 Mbps</h2>
     </div>
-
-    <div class="controls">
-      <select id="unitSelector">
-        <option value="mbps">Mbps</option>
-        <option value="MBps">MBps</option>
-        <option value="kbps">Kbps</option>
-        <option value="gbps">Gbps</option>
-      </select>
-      <button onclick="startTest()">Start Test</button>
+    <div class="card">
+      <p>Upload</p>
+      <h2 id="uploadText">0 Mbps</h2>
     </div>
-
-    <div class="info">
-      <p>Server: <span id="server">Detecting...</span></p>
+    <div class="card">
+      <p>Ping</p>
+      <h2 id="pingText">0 ms</h2>
     </div>
+    <button onclick="startSpeedTest()">Start Test</button>
+    <p class="server">Connected to: <span id="serverInfo">Detecting...</span></p>
   </div>
 
+  <script src="config.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
