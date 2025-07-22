@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NetSpeed</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="container">
+    <h1>Network Speed Test</h1>
+
+    <div class="speed-display">
+      <span id="speed">0</span>
+      <span id="unit">Mbps</span>
+    </div>
+
+    <div class="controls">
+      <select id="unitSelector">
+        <option value="mbps">Mbps</option>
+        <option value="MBps">MBps</option>
+        <option value="kbps">Kbps</option>
+        <option value="gbps">Gbps</option>
+      </select>
+      <button onclick="startTest()">Start Test</button>
+    </div>
+
+    <div class="info">
+      <p>Server: <span id="server">Detecting...</span></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
