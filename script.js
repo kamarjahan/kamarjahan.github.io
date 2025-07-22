@@ -1,62 +1,28 @@
-function bitsToMbps(bits) {
-  return (bits / 1024 / 1024).toFixed(2);
-}
+const gauge = new Gauge(document.getElementById("speedGauge")).setOptions({
+  angle: 0, lineWidth: 0.2, radiusScale: 1,
+  pointer: { length: 0.6, strokeWidth: 0.035, color: '#fff' },
+  limitMax: false, limitMin: false,
+  colorStart: '#6FADCF', colorStop: '#8FC0DA',
+  strokeColor: '#E0E0E0', generateGradient: true,
+});
+gauge.maxValue = 1000;
+gauge.setMinValue(0);
+gauge.animationSpeed = 32;
+gauge.set(0);
 
-function ms(ms) {
-  return ms.toFixed(0);
-}
-
-async function startSpeedTest() {
-  document.getElementById("downloadText").textContent = "Testing...";
-  document.getElementById("uploadText").textContent = "Testing...";
-  document.getElementById("pingText").textContent = "Testing...";
-
+document.getElementById("startBtn").addEventListener("click", async () => {
   try {
-    // Ping
-    const pingStart = performance.now();
-    await fetch(config.xhr_pingURL + "?r=" + Math.random(), { cache: "no-store" });
-    const pingEnd = performance.now();
-    const ping = pingEnd - pingStart;
-
-    // Download test
-    const dlStart = performance.now();
-    const dlRes = await fetch(config.xhr_dlURL[0] + "?r=" + Math.random(), { cache: "no-store" });
-    const dlBlob = await dlRes.blob();
-    const dlEnd = performance.now();
-    const dlDuration = (dlEnd - dlStart) / 1000;
-    const dlBits = dlBlob.size * 8;
-    const dlSpeed = bitsToMbps(dlBits / dlDuration);
-
-    // Upload test
-    const data = new Uint8Array(2 * 1024 * 1024); // 2MB
-    const ulStart = performance.now();
-    await fetch(config.xhr_ulURL + "?r=" + Math.random(), {
-      method: "POST",
-      body: data,
-      headers: {
-        "Content-Type": "application/octet-stream"
-      }
-    });
-    const ulEnd = performance.now();
-    const ulDuration = (ulEnd - ulStart) / 1000;
-    const ulBits = data.length * 8;
-    const ulSpeed = bitsToMbps(ulBits / ulDuration);
-
-    // Display
-    document.getElementById("downloadText").textContent = `${dlSpeed} Mbps`;
-    document.getElementById("uploadText").textContent = `${ulSpeed} Mbps`;
-    document.getElementById("pingText").textContent = `${ms(ping)} ms`;
+    const res = await fetch("https://ae24a2e9-0bf8-4d92-9380-8fe63556901a-00-3uh1h3ucqs3t4.pike.replit.dev/");
+    const data = await res.json();
+    
+    gauge.set(data.download);
+    document.getElementById("speed-text").innerText = `${data.download.toFixed(2)} Mbps`;
+    document.getElementById("server").innerText = data.server;
+    document.getElementById("download").innerText = data.download + " Mbps";
+    document.getElementById("upload").innerText = data.upload + " Mbps";
+    document.getElementById("ping").innerText = data.ping + " ms";
   } catch (err) {
-    alert("Speed test failed: " + err.message);
+    alert("Speed test failed. Check console.");
+    console.error(err);
   }
-}
-
-// Fetch IP/server info
-fetch(config.ipURL)
-  .then(res => res.json())
-  .then(data => {
-    document.getElementById("serverInfo").textContent = `${data.city}, ${data.country_name} (${data.ip})`;
-  })
-  .catch(() => {
-    document.getElementById("serverInfo").textContent = "Unknown";
-  });
+});
