@@ -1,0 +1,57 @@
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(to bottom right, #141e30, #243b55);
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.container {
+  text-align: center;
+  padding: 40px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.3);
+  backdrop-filter: blur(15px);
+}
+
+.speed-display {
+  font-size: 64px;
+  font-weight: bold;
+  margin: 20px 0;
+  animation: fadeIn 0.6s ease;
+}
+
+.controls {
+  margin: 20px 0;
+}
+
+select, button {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  margin: 5px;
+  font-size: 16px;
+  background-color: #ffffff22;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+select:hover, button:hover {
+  background-color: #ffffff44;
+}
+
+.info {
+  margin-top: 20px;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+@keyframes fadeIn {
+  from {opacity: 0; transform: scale(0.9);}
+  to {opacity: 1; transform: scale(1);}
+}
