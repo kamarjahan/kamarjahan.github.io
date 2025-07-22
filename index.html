@@ -1,31 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>FutrSpeed – Internet Speed Test</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Speed Test - FutrSpeed</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <div class="container">
-    <h1>🚀 FutrSpeed</h1>
-    <div class="card">
-      <p>Download</p>
-      <h2 id="downloadText">0 Mbps</h2>
+    <h1>🚀 Network Speed Test</h1>
+    <div id="gauge-container">
+      <canvas id="speedGauge" width="300" height="300"></canvas>
+      <div id="speed-text">0 Mbps</div>
     </div>
-    <div class="card">
-      <p>Upload</p>
-      <h2 id="uploadText">0 Mbps</h2>
+    <button id="startBtn">Start Test</button>
+    <div id="results">
+      <p>Server: <span id="server"></span></p>
+      <p>Download: <span id="download"></span></p>
+      <p>Upload: <span id="upload"></span></p>
+      <p>Ping: <span id="ping"></span></p>
     </div>
-    <div class="card">
-      <p>Ping</p>
-      <h2 id="pingText">0 ms</h2>
-    </div>
-    <button onclick="startSpeedTest()">Start Test</button>
-    <p class="server">Connected to: <span id="serverInfo">Detecting...</span></p>
   </div>
-
-  <script src="config.js"></script>
+  <script src="gauge.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
