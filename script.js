@@ -1,83 +1,62 @@
-let speedEl = document.getElementById("speed");
-let unitEl = document.getElementById("unit");
-let unitSelector = document.getElementById("unitSelector");
+function bitsToMbps(bits) {
+  return (bits / 1024 / 1024).toFixed(2);
+}
 
-let unit = "mbps";
+function ms(ms) {
+  return ms.toFixed(0);
+}
 
-// Simulate the speed test using image download
-async function startTest() {
-  speedEl.innerText = "0";
-  let imageAddr = "https://upload.wikimedia.org/wikipedia/commons/3/3f/Fronalpstock_big.jpg"; // 5MB image
-  let startTime = new Date().getTime();
-  
-  let downloadSize = 5 * 1024 * 1024; // 5MB
+async function startSpeedTest() {
+  document.getElementById("downloadText").textContent = "Testing...";
+  document.getElementById("uploadText").textContent = "Testing...";
+  document.getElementById("pingText").textContent = "Testing...";
 
   try {
-    const response = await fetch(imageAddr + "?nn=" + Math.random(), {
-      cache: "no-cache"
+    // Ping
+    const pingStart = performance.now();
+    await fetch(config.xhr_pingURL + "?r=" + Math.random(), { cache: "no-store" });
+    const pingEnd = performance.now();
+    const ping = pingEnd - pingStart;
+
+    // Download test
+    const dlStart = performance.now();
+    const dlRes = await fetch(config.xhr_dlURL[0] + "?r=" + Math.random(), { cache: "no-store" });
+    const dlBlob = await dlRes.blob();
+    const dlEnd = performance.now();
+    const dlDuration = (dlEnd - dlStart) / 1000;
+    const dlBits = dlBlob.size * 8;
+    const dlSpeed = bitsToMbps(dlBits / dlDuration);
+
+    // Upload test
+    const data = new Uint8Array(2 * 1024 * 1024); // 2MB
+    const ulStart = performance.now();
+    await fetch(config.xhr_ulURL + "?r=" + Math.random(), {
+      method: "POST",
+      body: data,
+      headers: {
+        "Content-Type": "application/octet-stream"
+      }
     });
-    await response.blob();
-    let endTime = new Date().getTime();
-    let duration = (endTime - startTime) / 1000;
+    const ulEnd = performance.now();
+    const ulDuration = (ulEnd - ulStart) / 1000;
+    const ulBits = data.length * 8;
+    const ulSpeed = bitsToMbps(ulBits / ulDuration);
 
-    let bitsLoaded = downloadSize * 8;
-    let speedBps = bitsLoaded / duration;
-
-    showSpeed(speedBps);
+    // Display
+    document.getElementById("downloadText").textContent = `${dlSpeed} Mbps`;
+    document.getElementById("uploadText").textContent = `${ulSpeed} Mbps`;
+    document.getElementById("pingText").textContent = `${ms(ping)} ms`;
   } catch (err) {
-    alert("Error testing speed: " + err);
+    alert("Speed test failed: " + err.message);
   }
 }
 
-function showSpeed(speedBps) {
-  let selectedUnit = unitSelector.value;
-  unit = selectedUnit;
-  unitEl.innerText = selectedUnit;
-
-  let convertedSpeed;
-
-  switch (selectedUnit) {
-    case "mbps":
-      convertedSpeed = speedBps / (1024 * 1024);
-      break;
-    case "MBps":
-      convertedSpeed = speedBps / (8 * 1024 * 1024);
-      break;
-    case "kbps":
-      convertedSpeed = speedBps / 1024;
-      break;
-    case "gbps":
-      convertedSpeed = speedBps / (1024 * 1024 * 1024);
-      break;
-    default:
-      convertedSpeed = speedBps / (1024 * 1024);
-  }
-
-  animateSpeed(0, convertedSpeed, 1000);
-}
-
-function animateSpeed(start, end, duration) {
-  let startTime = null;
-  function update(timestamp) {
-    if (!startTime) startTime = timestamp;
-    let progress = timestamp - startTime;
-    let current = easeOutQuad(progress, start, end - start, duration);
-    speedEl.innerText = current.toFixed(2);
-    if (progress < duration) {
-      requestAnimationFrame(update);
-    }
-  }
-  requestAnimationFrame(update);
-}
-
-function easeOutQuad(t, b, c, d) {
-  t /= d;
-  return -c * t*(t-2) + b;
-}
-
-// Get server info
-fetch("https://ipapi.co/json/")
+// Fetch IP/server info
+fetch(config.ipURL)
   .then(res => res.json())
   .then(data => {
-    document.getElementById("server").innerText = `${data.city}, ${data.country_name} (${data.ip})`;
+    document.getElementById("serverInfo").textContent = `${data.city}, ${data.country_name} (${data.ip})`;
+  })
+  .catch(() => {
+    document.getElementById("serverInfo").textContent = "Unknown";
   });
