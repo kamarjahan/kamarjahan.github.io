@@ -35,16 +35,20 @@
                 <h2 id="main-header-title">Home Loan EMI Calculator</h2>
                 <p>Calculate your Equated Monthly Installment (EMI) with ease.</p>
             </div>
-            <div class="theme-switcher">
-                <label for="theme-toggle" class="switch">
-                    <input type="checkbox" id="theme-toggle">
-                    <span class="slider round"></span>
-                </label>
+            <div class="header-actions">
+                <button id="comparisonToggleBtn">Compare Loans</button>
+                <div class="theme-switcher">
+                    <label for="theme-toggle" class="switch">
+                        <input type="checkbox" id="theme-toggle">
+                        <span class="slider round"></span>
+                    </label>
+                </div>
             </div>
         </header>
 
-        <div class="calculator-container">
+        <div class="calculator-container" id="mainCalculator">
             <div class="calculator">
+                <h4>Loan Details</h4>
                 <div class="input-group">
                     <div class="label-container">
                         <label for="loanAmount">Loan Amount (₹)</label>
@@ -69,6 +73,13 @@
                     <input type="range" id="loanTenureSlider" min="1" max="30" value="20" step="1">
                 </div>
 
+                <div class="input-group">
+                    <div class="label-container">
+                        <label for="extraPayment">Extra Payment (₹/month)</label>
+                        <input type="number" id="extraPaymentInput" value="0" min="0" step="100">
+                    </div>
+                </div>
+
                 <button id="calculateBtn">Calculate EMI</button>
             </div>
 
@@ -90,10 +101,85 @@
                 <div class="chart-container">
                     <canvas id="emiChart"></canvas>
                 </div>
+                 <div class="prepayment-results" id="prepaymentResults" style="display: none;">
+                    <h4>Prepayment Impact</h4>
+                    <p>New Loan Tenure: <strong id="newTenure"></strong></p>
+                    <p>Total Interest Saved: <strong id="interestSaved"></strong></p>
+                </div>
                 <button id="viewScheduleBtn">View Amortization Schedule</button>
                 <button id="printBtn" class="pdf-button" style="display: none;">Print</button>
             </div>
         </div>
+
+        <div class="comparison-container" id="comparisonSection" style="display: none;">
+            <h3>Loan Comparison</h3>
+            <div class="comparison-calculators">
+                <div class="calculator" id="loan1Calculator">
+                    <h4>Loan 1 Details</h4>
+                     <div class="input-group">
+                        <label>Loan Amount (₹)</label>
+                        <input type="number" class="loan-amount-comp" value="1000000">
+                    </div>
+                    <div class="input-group">
+                        <label>Interest Rate (% p.a.)</label>
+                        <input type="number" class="interest-rate-comp" value="8.5">
+                    </div>
+                    <div class="input-group">
+                        <label>Loan Tenure (Years)</label>
+                        <input type="number" class="loan-tenure-comp" value="20">
+                    </div>
+                </div>
+                <div class="calculator" id="loan2Calculator">
+                    <h4>Loan 2 Details</h4>
+                    <div class="input-group">
+                        <label>Loan Amount (₹)</label>
+                        <input type="number" class="loan-amount-comp" value="1000000">
+                    </div>
+                    <div class="input-group">
+                        <label>Interest Rate (% p.a.)</label>
+                        <input type="number" class="interest-rate-comp" value="9">
+                    </div>
+                    <div class="input-group">
+                        <label>Loan Tenure (Years)</label>
+                        <input type="number" class="loan-tenure-comp" value="15">
+                    </div>
+                </div>
+            </div>
+             <button id="calculateCompBtn">Calculate Comparison</button>
+            <div class="comparison-results" id="comparisonResults" style="display: none;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Loan 1</th>
+                            <th>Loan 2</th>
+                            <th>Difference</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Monthly EMI</td>
+                            <td id="compEmi1">₹ 0</td>
+                            <td id="compEmi2">₹ 0</td>
+                            <td id="compEmiDiff">₹ 0</td>
+                        </tr>
+                        <tr>
+                            <td>Total Interest</td>
+                            <td id="compInterest1">₹ 0</td>
+                            <td id="compInterest2">₹ 0</td>
+                            <td id="compInterestDiff">₹ 0</td>
+                        </tr>
+                        <tr>
+                            <td>Total Amount</td>
+                            <td id="compTotal1">₹ 0</td>
+                            <td id="compTotal2">₹ 0</td>
+                            <td id="compTotalDiff">₹ 0</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     </main>
 
     <div id="scheduleModal" class="modal">
