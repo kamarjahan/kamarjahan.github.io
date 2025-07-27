@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan EMI Calculator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <aside class="sidebar">
+        <h1 class="logo">LoanCalc</h1>
+        <nav class="menu">
+            <a href="#" class="menu-item active"><i class="icon">🏠</i> Home Loan</a>
+            <a href="#" class="menu-item"><i class="icon">🚗</i> Car Loan</a>
+            <a href="#" class="menu-item"><i class="icon">🎓</i> Education Loan</a>
+            <a href="#" class="menu-item"><i class="icon">💼</i> Personal Loan</a>
+            <a href="#" class="menu-item"><i class="icon">📈</i> Business Loan</a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        <header>
+            <h2>Loan EMI Calculator</h2>
+            <p>Calculate your Equated Monthly Installment (EMI) with ease.</p>
+        </header>
+
+        <div class="calculator-container">
+            <div class="calculator">
+                <div class="input-group">
+                    <div class="label-container">
+                        <label for="loanAmount">Loan Amount (₹)</label>
+                        <input type="number" id="loanAmountInput" value="1000000" min="10000" max="50000000">
+                    </div>
+                    <input type="range" id="loanAmountSlider" min="10000" max="50000000" value="1000000" step="10000">
+                </div>
+
+                <div class="input-group">
+                    <div class="label-container">
+                        <label for="interestRate">Interest Rate (% p.a.)</label>
+                        <input type="number" id="interestRateInput" value="8.5" min="1" max="20" step="0.1">
+                    </div>
+                    <input type="range" id="interestRateSlider" min="1" max="20" value="8.5" step="0.1">
+                </div>
+
+                <div class="input-group">
+                    <div class="label-container">
+                        <label for="loanTenure">Loan Tenure (Years)</label>
+                        <input type="number" id="loanTenureInput" value="20" min="1" max="30">
+                    </div>
+                    <input type="range" id="loanTenureSlider" min="1" max="30" value="20" step="1">
+                </div>
+
+                <button id="calculateBtn">Calculate EMI</button>
+            </div>
+
+            <div class="results-container" id="results">
+                <div class="results-summary">
+                    <div class="result-item">
+                        <p>Monthly EMI</p>
+                        <h3 id="monthlyEmi">₹ 0</h3>
+                    </div>
+                    <div class="result-item">
+                        <p>Total Interest</p>
+                        <h3 id="totalInterest">₹ 0</h3>
+                    </div>
+                     <div class="result-item">
+                        <p>Total Amount</p>
+                        <h3 id="totalAmount">₹ 0</h3>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="emiChart"></canvas>
+                </div>
+                <button id="viewScheduleBtn">View Amortization Schedule</button>
+            </div>
+        </div>
+    </main>
+
+    <div id="scheduleModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h2>Amortization Schedule</h2>
+            <div class="table-container">
+                <table id="scheduleTable">
+                    <thead>
+                        <tr>
+                            <th>Month</th>
+                            <th>Principal Paid</th>
+                            <th>Interest Paid</th>
+                            <th>Total Payment</th>
+                            <th>Balance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
