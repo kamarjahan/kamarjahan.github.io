@@ -29,6 +29,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const scheduleTableBody = document.querySelector('#scheduleTable tbody');
     // Theme Switcher
     const themeToggle = document.getElementById('theme-toggle');
+    // Print Button
+    const printBtn = document.getElementById('printBtn');
+
 
     // --- INITIALIZATION ---
     setupEventListeners();
@@ -46,6 +49,8 @@ document.addEventListener('DOMContentLoaded', () => {
         hamburgerMenu.addEventListener('click', toggleSidebar);
         menu.addEventListener('click', handleMenuClick);
         themeToggle.addEventListener('change', toggleTheme);
+        printBtn.addEventListener('click', printResults);
+
 
         // Modal Actions
         viewScheduleBtn.addEventListener('click', openScheduleModal);
@@ -111,7 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function openScheduleModal() {
-        generateAmortizationSchedule();
+        generateAmortizationSchedule(scheduleTableBody);
         modal.style.display = 'block';
     }
 
@@ -146,6 +151,9 @@ document.addEventListener('DOMContentLoaded', () => {
         totalAmountEl.textContent = formatCurrency(data.totalAmount);
         resultsContainer.classList.add('show');
         updateChart(data.principal, data.totalInterest);
+        
+        // Show and enable the print button
+        printBtn.style.display = 'block';
     }
     
     // --- CHART & SCHEDULE ---
@@ -185,8 +193,9 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    function generateAmortizationSchedule() {
-        scheduleTableBody.innerHTML = '';
+    function generateAmortizationSchedule(tableBodyElement) {
+        tableBodyElement.innerHTML = ''; // Clear previous data
+        
         const principal = parseFloat(loanAmountInput.value);
         const annualRate = parseFloat(interestRateInput.value);
         const tenureYears = parseInt(loanTenureInput.value);
@@ -208,122 +217,66 @@ document.addEventListener('DOMContentLoaded', () => {
                 <td>₹ ${formatCurrency(emi)}</td>
                 <td>₹ ${formatCurrency(balance < 1 ? 0 : balance)}</td>
             `;
-            scheduleTableBody.appendChild(row);
+            tableBodyElement.appendChild(row);
         }
     }
-});
 
-
-// script.js
-
-document.addEventListener('DOMContentLoaded', () => {
-    // --- ADD THIS TO YOUR ELEMENT SELECTORS ---
-    const downloadPdfBtn = document.getElementById('downloadPdfBtn');
-    
-    // --- INSIDE setupEventListeners() FUNCTION ---
-    function setupEventListeners() {
-        // ... (keep all existing event listeners) ...
-        downloadPdfBtn.addEventListener('click', generatePdf); // Add this line
-    }
-
-    // --- In displayResults(), enable the button ---
-    function displayResults(data) {
-        // ... (existing code) ...
-        resultsContainer.classList.add('show');
-        updateChart(data.principal, data.totalInterest);
-        
-        // Enable the download button
-        downloadPdfBtn.style.display = 'block';
-    }
-
-    // --- ADD THIS NEW FUNCTION AT THE END OF THE SCRIPT ---
-    function generatePdf() {
-        // 1. Create a container for the PDF content
-        const printableArea = document.createElement('div');
-        printableArea.className = 'printable-area';
-        
+    // --- PRINT FUNCTIONALITY ---
+    function printResults() {
         const loanType = document.querySelector('.menu-item.active').dataset.loanType;
-        const formatCurrency = (num) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(num);
-
-        // 2. Get all the data and structure it for the PDF
-        const summaryData = document.querySelector('.results-summary').cloneNode(true);
+        const summaryClone = document.querySelector('.results-summary').cloneNode(true);
         const chartImage = emiChart.toBase64Image();
-        
-        printableArea.innerHTML = `
-            <h1>${loanType} Repayment Details</h1>
-            <h2>Summary</h2>
-        `;
-        printableArea.appendChild(summaryData);
 
-        printableArea.innerHTML += `
-            <h2>Loan Breakdown</h2>
-            <div class="chart-container" style="text-align: center;">
-                <img src="${chartImage}" style="max-width: 400px; margin: auto;">
-            </div>
-            <h2>Amortization Schedule</h2>
-        `;
-        
-        // Generate and append the full table
+        // Create a new table for the schedule to print
         const scheduleTable = document.createElement('table');
         scheduleTable.innerHTML = document.getElementById('scheduleTable').querySelector('thead').outerHTML;
-        const scheduleBody = document.createElement('tbody');
-        generateAmortizationSchedule(scheduleBody); // Pass a tbody to populate
-        scheduleTable.appendChild(scheduleBody);
-        printableArea.appendChild(scheduleTable);
+        const scheduleBodyForPrint = document.createElement('tbody');
+        generateAmortizationSchedule(scheduleBodyForPrint);
+        scheduleTable.appendChild(scheduleBodyForPrint);
 
-        // 3. Temporarily add to the document to render
-        document.body.appendChild(printableArea);
-
-        // 4. Use html2pdf to generate and save the PDF
-        const options = {
-            margin:       0.5,
-            filename:     `${loanType.replace(' ', '_')}_EMI_Details.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2, useCORS: true },
-            jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
-        };
-
-        html2pdf().from(printableArea).set(options).save().then(() => {
-            // 5. Remove the temporary element after PDF is saved
-            document.body.removeChild(printableArea);
-        });
-    }
-
-    // --- MODIFY generateAmortizationSchedule() ---
-    // Modify it to accept an element to append rows to.
-    // This allows us to generate the table for both the modal and the PDF.
-    function generateAmortizationSchedule(tableBodyElement = null) {
-        const tableBody = tableBodyElement || scheduleTableBody;
-        tableBody.innerHTML = ''; // Clear previous data
-        
-        const principal = parseFloat(loanAmountInput.value);
-        const annualRate = parseFloat(interestRateInput.value);
-        const tenureYears = parseInt(loanTenureInput.value);
-        const monthlyRate = annualRate / 12 / 100;
-        const tenureMonths = tenureYears * 12;
-        const emi = (principal * monthlyRate * Math.pow(1 + monthlyRate, tenureMonths)) / (Math.pow(1 + monthlyRate, tenureMonths) - 1);
-        let balance = principal;
-        const formatCurrency = (num) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(num);
-
-        for (let i = 1; i <= tenureMonths; i++) {
-            const interestPaid = balance * monthlyRate;
-            const principalPaid = emi - interestPaid;
-            balance -= principalPaid;
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${i}</td>
-                <td>₹ ${formatCurrency(principalPaid)}</td>
-                <td>₹ ${formatCurrency(interestPaid)}</td>
-                <td>₹ ${formatCurrency(emi)}</td>
-                <td>₹ ${formatCurrency(balance < 1 ? 0 : balance)}</td>
-            `;
-            tableBody.appendChild(row);
-        }
-    }
-    
-    // --- MODIFY the openScheduleModal() function call ---
-    function openScheduleModal() {
-        generateAmortizationSchedule(); // This now correctly targets the modal's table body
-        modal.style.display = 'block';
+        // Create a new window for printing
+        const printWindow = window.open('', '_blank');
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>${loanType} Repayment Details</title>
+                    <link rel="stylesheet" href="style.css">
+                    <style>
+                        body { background: #fff; color: #000; }
+                        .printable-area { padding: 25px; }
+                        h1, h2 { text-align: center; margin-bottom: 20px; }
+                        .results-summary { grid-template-columns: repeat(3, 1fr); gap: 1rem; text-align: center; margin-bottom: 2rem; }
+                        .result-item { background: #f4f4f4; padding: 1rem; border-radius: 8px; border: 1px solid #ddd; }
+                        .result-item p { color: #555; margin-bottom: 0.5rem; }
+                        .result-item h3 { font-size: 1.5rem; color: #007bff; }
+                        .chart-container { text-align: center; margin: 2rem 0; }
+                        img { max-width: 400px; margin: auto; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 2rem; font-size: 9pt; }
+                        th, td { border: 1px solid #ccc; padding: 8px; text-align: right; }
+                        th { background-color: #e9ecef; font-weight: 600; }
+                    </style>
+                </head>
+                <body>
+                    <div class="printable-area">
+                        <h1>${loanType} Repayment Details</h1>
+                        <h2>Summary</h2>
+                        ${summaryClone.outerHTML}
+                        <h2>Loan Breakdown</h2>
+                        <div class="chart-container">
+                            <img src="${chartImage}">
+                        </div>
+                        <h2>Amortization Schedule</h2>
+                        ${scheduleTable.outerHTML}
+                    </div>
+                    <script>
+                        window.onload = () => {
+                            window.print();
+                            window.close();
+                        }
+                    </script>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
     }
 });
