@@ -12,21 +12,35 @@
 </head>
 <body>
 
-    <aside class="sidebar">
+    <button class="hamburger" id="hamburger-menu">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <aside class="sidebar" id="sidebar">
         <h1 class="logo">LoanCalc</h1>
-        <nav class="menu">
-            <a href="#" class="menu-item active"><i class="icon">🏠</i> Home Loan</a>
-            <a href="#" class="menu-item"><i class="icon">🚗</i> Car Loan</a>
-            <a href="#" class="menu-item"><i class="icon">🎓</i> Education Loan</a>
-            <a href="#" class="menu-item"><i class="icon">💼</i> Personal Loan</a>
-            <a href="#" class="menu-item"><i class="icon">📈</i> Business Loan</a>
+        <nav class="menu" id="menu">
+            <a href="#" class="menu-item active" data-loan-type="Home Loan"><i class="icon">🏠</i> Home Loan</a>
+            <a href="#" class="menu-item" data-loan-type="Car Loan"><i class="icon">🚗</i> Car Loan</a>
+            <a href="#" class="menu-item" data-loan-type="Education Loan"><i class="icon">🎓</i> Education Loan</a>
+            <a href="#" class="menu-item" data-loan-type="Personal Loan"><i class="icon">💼</i> Personal Loan</a>
+            <a href="#" class="menu-item" data-loan-type="Business Loan"><i class="icon">📈</i> Business Loan</a>
         </nav>
     </aside>
 
     <main class="main-content">
         <header>
-            <h2>Loan EMI Calculator</h2>
-            <p>Calculate your Equated Monthly Installment (EMI) with ease.</p>
+            <div class="header-title">
+                <h2 id="main-header-title">Home Loan EMI Calculator</h2>
+                <p>Calculate your Equated Monthly Installment (EMI) with ease.</p>
+            </div>
+            <div class="theme-switcher">
+                <label for="theme-toggle" class="switch">
+                    <input type="checkbox" id="theme-toggle">
+                    <span class="slider round"></span>
+                </label>
+            </div>
         </header>
 
         <div class="calculator-container">
