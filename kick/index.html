@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kick Stream Player</title>
+    <title>Immersive Kick Player</title>
     <style>
         /* --- 1. Base Styles --- */
         body {
@@ -27,8 +27,10 @@
             position: relative;
             box-shadow: 0 10px 30px rgba(0,0,0,0.5);
             border-radius: 12px;
-            overflow: hidden;
+            overflow: hidden; /* Important for rounding */
             background: #000;
+            /* Transition for cursor hiding */
+            cursor: default;
         }
 
         .video-container {
@@ -47,78 +49,83 @@
             border: none;
         }
 
-        /* --- 3. Overlay Header (Contains Refresh Button) --- */
+        /* --- 3. Overlay Header (The Menu) --- */
         .stream-header {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
-            height: 60px; /* Area for controls */
+            height: 70px;
             background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
             display: flex;
-            justify-content: space-between;
+            justify-content: space-between; /* Space items to edges */
             align-items: center;
-            padding: 0 20px; /* Spacing on sides */
-            box-sizing: border-box; /* Important for padding */
+            padding: 0 20px;
+            box-sizing: border-box;
             z-index: 10;
-            pointer-events: none; /* Let clicks pass through empty areas */
+            
+            /* Smooth Fade Animation */
+            opacity: 1;
+            transition: opacity 0.4s ease-in-out;
+            pointer-events: none; /* Allows clicks to pass through empty space */
+        }
+
+        /* Class to hide the menu */
+        .stream-header.hidden {
+            opacity: 0;
+        }
+
+        /* --- 4. Button Styles --- */
+        .controls-group {
+            display: flex;
+            gap: 10px;
+            pointer-events: auto; /* Re-enable clicks for buttons */
+        }
+
+        .icon-btn {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+            width: 40px; /* Square buttons */
+            height: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+            transition: all 0.2s ease;
+        }
+
+        .icon-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
         }
 
         .live-badge {
             background-color: #53fc18;
             color: #000;
-            padding: 4px 8px;
+            padding: 5px 10px;
             border-radius: 4px;
             font-size: 12px;
             font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            pointer-events: auto;
         }
 
-        /* --- THE REFRESH BUTTON STYLE --- */
-        .refresh-btn {
-            pointer-events: auto; /* Re-enable clicking for this button */
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px; /* Space between icon and text */
-            backdrop-filter: blur(5px);
-            transition: all 0.2s ease;
-        }
+        /* Animation for Refresh */
+        .spin-anim { animation: spin 0.5s linear; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
 
-        .refresh-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.02);
-        }
-
-        .refresh-btn:active {
-            transform: scale(0.98);
-        }
-
-        /* Icon Animation Class */
-        .spin-anim {
-            animation: spin 0.5s linear;
-        }
-
-        @keyframes spin {
-            100% { transform: rotate(360deg); }
-        }
-
-        /* --- 4. Setup Modal (Popup) --- */
+        /* --- 5. Setup Modal --- */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.9);
             backdrop-filter: blur(8px);
             z-index: 999;
             display: flex;
@@ -126,23 +133,12 @@
             align-items: center;
             transition: opacity 0.5s ease;
         }
-
-        .modal-box {
-            background: #191b1f;
-            padding: 30px;
-            border-radius: 16px;
-            border: 1px solid #2d3035;
-            text-align: center;
-            width: 90%;
-            max-width: 400px;
-        }
-
+        .modal-box { background: #191b1f; padding: 30px; border-radius: 16px; border: 1px solid #2d3035; text-align: center; width: 90%; max-width: 400px; }
         .modal-title { color: #53fc18; font-size: 24px; font-weight: 800; margin-bottom: 10px; text-transform: uppercase; }
         .input-group { display: flex; gap: 10px; margin-top: 20px; }
         .username-input { flex: 1; padding: 12px; border-radius: 8px; border: 1px solid #2d3035; background: #0e0e10; color: white; outline: none; }
         .username-input:focus { border-color: #53fc18; }
         .watch-btn { padding: 12px 24px; background: #53fc18; color: #000; border: none; border-radius: 8px; font-weight: 700; cursor: pointer; }
-        .watch-btn:hover { background: #42c912; }
 
     </style>
 </head>
@@ -159,18 +155,26 @@
         </div>
     </div>
 
-    <div class="stream-wrapper">
-        <div class="stream-header">
-            <div class="live-badge">Live Feed</div>
+    <div class="stream-wrapper" id="playerWrapper">
+        
+        <div class="stream-header" id="overlayMenu">
+            <div class="live-badge">Live</div>
             
-            <button class="refresh-btn" onclick="reloadStream()">
-                <svg id="refreshIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M23 4v6h-6"></path>
-                    <path d="M1 20v-6h6"></path>
-                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                </svg>
-                Refresh Player
-            </button>
+            <div class="controls-group">
+                <button class="icon-btn" onclick="reloadStream()" title="Refresh Stream">
+                    <svg id="refreshIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M23 4v6h-6"></path>
+                        <path d="M1 20v-6h6"></path>
+                        <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                    </svg>
+                </button>
+
+                <button class="icon-btn" onclick="toggleFullscreen()" title="Full Screen">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <div class="video-container">
@@ -190,8 +194,10 @@
         const input = document.getElementById('streamerName');
         const iframe = document.getElementById('kickPlayer');
         const refreshIcon = document.getElementById('refreshIcon');
+        const overlay = document.getElementById('overlayMenu');
+        const wrapper = document.getElementById('playerWrapper');
 
-        // Allow "Enter" key
+        // --- 1. Startup Logic ---
         input.addEventListener("keypress", function(event) {
             if (event.key === "Enter") startStream();
         });
@@ -199,33 +205,67 @@
         function startStream() {
             const username = input.value.trim();
             if (!username) return alert("Enter a name!");
-            
             iframe.src = `https://player.kick.com/${username}?autoplay=true&muted=false`;
-            
             modal.style.opacity = '0';
             setTimeout(() => { modal.style.display = 'none'; }, 500);
+            
+            // Start the auto-hide timer once stream starts
+            resetIdleTimer();
         }
 
+        // --- 2. Refresh Logic ---
         function reloadStream() {
-            // 1. Add visual spin animation
             refreshIcon.classList.add("spin-anim");
-            
-            // Remove animation class after it finishes so we can click again later
-            setTimeout(() => {
-                refreshIcon.classList.remove("spin-anim");
-            }, 500);
-
-            // 2. Logic to refresh iframe
+            setTimeout(() => { refreshIcon.classList.remove("spin-anim"); }, 500);
             if(iframe.src) {
                 const currentSrc = iframe.src;
-                iframe.src = ''; // Clear source to stop playback
-                
-                // Slight delay to force browser to recognize the change
-                setTimeout(() => {
-                    iframe.src = currentSrc;
-                }, 100);
+                iframe.src = ''; 
+                setTimeout(() => { iframe.src = currentSrc; }, 100);
             }
         }
+
+        // --- 3. Full Screen Logic ---
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                if (wrapper.requestFullscreen) {
+                    wrapper.requestFullscreen();
+                } else if (wrapper.webkitRequestFullscreen) { /* Safari */
+                    wrapper.webkitRequestFullscreen();
+                } else if (wrapper.msRequestFullscreen) { /* IE11 */
+                    wrapper.msRequestFullscreen();
+                }
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // --- 4. Auto-Hide Menu Logic ---
+        let idleTimer;
+        
+        function showMenu() {
+            overlay.classList.remove('hidden');
+            wrapper.style.cursor = 'default'; // Show cursor
+        }
+
+        function hideMenu() {
+            overlay.classList.add('hidden');
+            wrapper.style.cursor = 'none'; // Hide cursor for immersion
+        }
+
+        function resetIdleTimer() {
+            showMenu();
+            clearTimeout(idleTimer);
+            // Hide after 2000ms (2 seconds) of no movement
+            idleTimer = setTimeout(hideMenu, 2000);
+        }
+
+        // Listen for mouse movement or touches on the wrapper
+        wrapper.addEventListener('mousemove', resetIdleTimer);
+        wrapper.addEventListener('click', resetIdleTimer);
+        wrapper.addEventListener('touchstart', resetIdleTimer); // Mobile support
+
     </script>
 </body>
 </html>
