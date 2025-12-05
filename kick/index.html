@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Kick Stream Player</title>
+    <style>
+        /* --- 1. Base Styles & Reset --- */
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0e0e10; /* Dark Theme */
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: white;
+        }
+
+        /* --- 2. The High-Performance Container --- */
+        .stream-wrapper {
+            width: 100%;
+            max-width: 1280px; /* PC Limit */
+            margin: 0 auto;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5); /* Smooth Depth */
+            border-radius: 12px; /* Smooth UI rounded corners */
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* Aspect Ratio Hack: Maintains 16:9 on all devices without JS calculation */
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+            background: #000;
+        }
+
+        /* --- 3. The Iframe Optimization --- */
+        .kick-iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            /* Hardware Acceleration hints for low-end devices */
+            transform: translateZ(0); 
+            will-change: transform;
+        }
+
+        /* --- 4. Custom UI Elements (Overlay) --- */
+        .stream-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), transparent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            pointer-events: none; /* Let clicks pass through to video */
+            z-index: 2;
+        }
+
+        .live-badge {
+            background-color: #53fc18; /* Kick Green */
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Refresh Button: Essential for mobile/low-end if stream hangs */
+        .refresh-btn {
+            pointer-events: auto; /* Enable clicking */
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 5px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            backdrop-filter: blur(5px);
+            transition: background 0.2s;
+        }
+
+        .refresh-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* --- 5. Loading Skeleton --- */
+        .loader {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #53fc18;
+            animation: spin 1s ease-in-out infinite;
+            z-index: 1;
+            /* Only show when needed via JS */
+            display: block; 
+        }
+
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="stream-wrapper">
+        <div class="stream-header">
+            <span class="live-badge">Live View</span>
+            <button class="refresh-btn" onclick="reloadStream()">&#x21bb; Refresh</button>
+        </div>
+
+        <div class="video-container">
+            <div class="loader" id="loadingSpinner"></div>
+            
+            <iframe 
+                id="kickPlayer"
+                class="kick-iframe"
+                src="https://player.kick.com/xqc?autoplay=true&muted=false" 
+                allowfullscreen="true"
+                scrolling="no"
+                allow="autoplay; encrypted-media; picture-in-picture"
+                onload="hideLoader()">
+            </iframe>
+        </div>
+    </div>
+
+    <script>
+        // --- Logic for Low-End Device Optimization ---
+
+        const iframe = document.getElementById('kickPlayer');
+        const loader = document.getElementById('loadingSpinner');
+
+        // 1. Hide the ugly loading spinner once the iframe content arrives
+        function hideLoader() {
+            // We set a small timeout because iframes report "load" slightly before rendering video
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 1000);
+        }
+
+        // 2. Custom Refresh Logic (Does not reload whole page, just the iframe)
+        // This saves data and RAM on low-end phones
+        function reloadStream() {
+            loader.style.display = 'block';
+            // Force a clean reload of the source
+            const currentSrc = iframe.src;
+            iframe.src = ''; 
+            setTimeout(() => {
+                iframe.src = currentSrc;
+            }, 100);
+        }
+
+        // 3. Lazy Load Check (Optional Optimization)
+        // If the user scrolls away, we don't want to kill the battery
+        // Note: Browsers handle this mostly automatically now with embedded players
+    </script>
+</body>
+</html>
