@@ -3,34 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Custom Kick Stream Player</title>
+    <title>Kick Stream Player</title>
     <style>
-        /* --- 1. Base Styles & Reset --- */
+        /* --- 1. Base Styles --- */
         body {
             margin: 0;
             padding: 0;
-            background-color: #0e0e10; /* Dark Theme */
+            background-color: #0e0e10;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             color: white;
+            overflow: hidden; /* Prevent scrolling */
         }
 
-        /* --- 2. The High-Performance Container --- */
+        /* --- 2. The Stream Wrapper --- */
         .stream-wrapper {
             width: 100%;
-            max-width: 1280px; /* PC Limit */
+            max-width: 1280px;
             margin: 0 auto;
             position: relative;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5); /* Smooth Depth */
-            border-radius: 12px; /* Smooth UI rounded corners */
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            border-radius: 12px;
             overflow: hidden;
             background: #000;
         }
 
-        /* Aspect Ratio Hack: Maintains 16:9 on all devices without JS calculation */
         .video-container {
             position: relative;
             width: 100%;
@@ -38,7 +38,6 @@
             background: #000;
         }
 
-        /* --- 3. The Iframe Optimization --- */
         .kick-iframe {
             position: absolute;
             top: 0;
@@ -46,12 +45,94 @@
             width: 100%;
             height: 100%;
             border: none;
-            /* Hardware Acceleration hints for low-end devices */
-            transform: translateZ(0); 
-            will-change: transform;
+            transform: translateZ(0);
         }
 
-        /* --- 4. Custom UI Elements (Overlay) --- */
+        /* --- 3. The Welcome Modal (Overlay) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85); /* Dark background */
+            backdrop-filter: blur(8px); /* Blur effect */
+            z-index: 999;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 0.5s ease;
+        }
+
+        .modal-box {
+            background: #191b1f;
+            padding: 30px;
+            border-radius: 16px;
+            border: 1px solid #2d3035;
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+
+        .modal-title {
+            color: #53fc18; /* Kick Green */
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .modal-desc {
+            color: #b0b0b0;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        /* Input Styling */
+        .input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .username-input {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #2d3035;
+            background: #0e0e10;
+            color: white;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .username-input:focus {
+            border-color: #53fc18;
+        }
+
+        .watch-btn {
+            padding: 12px 24px;
+            background: #53fc18;
+            color: #000;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 16px;
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        .watch-btn:hover {
+            background: #42c912;
+            transform: scale(1.05);
+        }
+
+        .watch-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* --- 4. Controls Overlay --- */
         .stream-header {
             position: absolute;
             top: 0;
@@ -62,24 +143,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            pointer-events: none; /* Let clicks pass through to video */
+            pointer-events: none;
             z-index: 2;
         }
 
-        .live-badge {
-            background-color: #53fc18; /* Kick Green */
-            color: #000;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        /* Refresh Button: Essential for mobile/low-end if stream hangs */
         .refresh-btn {
-            pointer-events: auto; /* Enable clicking */
+            pointer-events: auto;
             background: rgba(255, 255, 255, 0.1);
             border: 1px solid rgba(255, 255, 255, 0.2);
             color: white;
@@ -88,88 +157,83 @@
             cursor: pointer;
             font-size: 12px;
             backdrop-filter: blur(5px);
-            transition: background 0.2s;
         }
-
-        .refresh-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        /* --- 5. Loading Skeleton --- */
-        .loader {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: #53fc18;
-            animation: spin 1s ease-in-out infinite;
-            z-index: 1;
-            /* Only show when needed via JS */
-            display: block; 
-        }
-
-        @keyframes spin {
-            to { transform: translate(-50%, -50%) rotate(360deg); }
-        }
-
     </style>
 </head>
 <body>
 
+    <div class="modal-overlay" id="setupModal">
+        <div class="modal-box">
+            <div class="modal-title">Kick Player</div>
+            <div class="modal-desc">Enter the channel username to start watching.</div>
+            
+            <div class="input-group">
+                <input type="text" id="streamerName" class="username-input" placeholder="e.g. xqc, trainwreckstv..." autocomplete="off">
+                <button class="watch-btn" onclick="startStream()">Watch</button>
+            </div>
+        </div>
+    </div>
+
     <div class="stream-wrapper">
         <div class="stream-header">
-            <span class="live-badge">Live View</span>
+            <span style="color:#53fc18; font-weight:800; font-size:12px;">LIVE FEED</span>
             <button class="refresh-btn" onclick="reloadStream()">&#x21bb; Refresh</button>
         </div>
 
         <div class="video-container">
-            <div class="loader" id="loadingSpinner"></div>
-            
             <iframe 
                 id="kickPlayer"
                 class="kick-iframe"
-                src="https://player.kick.com/xqc?autoplay=true&muted=false" 
+                src="" 
                 allowfullscreen="true"
                 scrolling="no"
-                allow="autoplay; encrypted-media; picture-in-picture"
-                onload="hideLoader()">
+                allow="autoplay; encrypted-media; picture-in-picture">
             </iframe>
         </div>
     </div>
 
     <script>
-        // --- Logic for Low-End Device Optimization ---
-
+        const modal = document.getElementById('setupModal');
+        const input = document.getElementById('streamerName');
         const iframe = document.getElementById('kickPlayer');
-        const loader = document.getElementById('loadingSpinner');
 
-        // 1. Hide the ugly loading spinner once the iframe content arrives
-        function hideLoader() {
-            // We set a small timeout because iframes report "load" slightly before rendering video
+        // Allow pressing "Enter" key to start
+        input.addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                startStream();
+            }
+        });
+
+        function startStream() {
+            const username = input.value.trim();
+            
+            if (!username) {
+                alert("Please enter a username!");
+                return;
+            }
+
+            // 1. Construct the Kick Embed URL dynamically
+            const embedUrl = `https://player.kick.com/${username}?autoplay=true&muted=false`;
+            
+            // 2. Set the iframe source
+            iframe.src = embedUrl;
+
+            // 3. Smoothly fade out the modal
+            modal.style.opacity = '0';
+            
+            // 4. Remove modal from DOM after fade completes
             setTimeout(() => {
-                loader.style.display = 'none';
-            }, 1000);
+                modal.style.display = 'none';
+            }, 500);
         }
 
-        // 2. Custom Refresh Logic (Does not reload whole page, just the iframe)
-        // This saves data and RAM on low-end phones
         function reloadStream() {
-            loader.style.display = 'block';
-            // Force a clean reload of the source
             const currentSrc = iframe.src;
-            iframe.src = ''; 
+            iframe.src = '';
             setTimeout(() => {
                 iframe.src = currentSrc;
             }, 100);
         }
-
-        // 3. Lazy Load Check (Optional Optimization)
-        // If the user scrolls away, we don't want to kill the battery
-        // Note: Browsers handle this mostly automatically now with embedded players
     </script>
 </body>
 </html>
